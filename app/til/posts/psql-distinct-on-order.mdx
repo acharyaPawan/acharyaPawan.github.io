@@ -1,0 +1,20 @@
+---
+title: 'TIL: DISTINCT ON obeys ORDER BY priority'
+publishedAt: '2024-11-22'
+summary: 'Postgres evaluates DISTINCT ON after ORDER BY, so you can keep the “latest row per group” without window functions.'
+tags:
+  - postgres
+  - sql
+---
+
+I kept forgetting how `DISTINCT ON` picks a winner. Turns out the rows are sorted
+by the leading columns in `ORDER BY` **before** the distinct operation runs.
+
+```sql
+SELECT DISTINCT ON (account_id) *
+FROM invoices
+ORDER BY account_id, created_at DESC;
+```
+
+This keeps a single row per `account_id`, prioritizing the newest timestamp. No CTE,
+no extra join, just a clean SQL primitive baked into Postgres.

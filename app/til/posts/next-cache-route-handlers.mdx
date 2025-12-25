@@ -1,0 +1,25 @@
+---
+title: 'TIL: Cache route handlers with tagged revalidation'
+publishedAt: '2024-11-20'
+summary: 'Route handlers in Next.js can share ISR-style invalidation by wiring `revalidateTag`.'
+tags:
+  - nextjs
+  - caching
+  - web
+---
+
+Next.js route handlers support the same cache primitives as `fetch`. Wrapping a fetch
+in `revalidateTag('metrics')` and calling `revalidateTag` from a cron job invalidates
+the cached response without redeploying.
+
+```ts
+export async function GET() {
+  let data = await fetch(apiUrl, {
+    next: { revalidate: 3600, tags: ['metrics'] },
+  }).then((res) => res.json())
+
+  return Response.json(data)
+}
+```
+
+Pairing this with Vercel cron gave me cheap scheduled reports without shipping a server.
