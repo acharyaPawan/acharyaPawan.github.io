@@ -1,0 +1,70 @@
+---
+title: 'Devlog: Shipping Observability Dashboards'
+publishedAt: '2025-02-12'
+updatedAt: '2025-02-14'
+summary: 'A hands-on log of how we wired tracing, metrics, and dashboards for our slowest service.'
+type: 'Devlog'
+status: 'published'
+tags:
+  - observability
+  - grafana
+  - opentelemetry
+series: 'Instrumentation Quest'
+seriesOrder: 2
+slug: 'devlog-observability'
+coverImage: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=80'
+readingTime: 8
+references:
+  - id: 'otel'
+    title: 'OpenTelemetry Specification'
+    url: 'https://opentelemetry.io/docs/specs/otel/'
+    note: 'Traces + metrics signals we implemented this week.'
+  - id: 'grafana-panels'
+    title: 'Grafana Dashboard Design Principles'
+    url: 'https://grafana.com/docs/grafana/latest/getting-started/build-first-dashboard/'
+    author: 'Grafana Labs'
+  - 'https://sre.google/sre-book/monitoring-distributed-systems/'
+related:
+  - runtime-log-tooling
+  - spaces-vs-tabs
+---
+
+## Monday — chasing down tail latency
+
+We started the sprint with a terrifying p99 on the provisioning API. The first fix
+was to **instrument the queue worker** with OpenTelemetry auto-instrumentation.
+Within an hour we had trace spans flowing into Tempo and saw that cache misses
+were at the root of the problem.
+
+Key steps:
+
+- Enabled baggage propagation between GraphQL and worker processes.
+- Attached a `region` attribute to every request to filter dashboards quickly.
+- Stubbed out a temporary alert that pushes to Slack when p95 > 8s.
+
+## Tuesday — metrics that people actually read
+
+The hardest part was not emitting metrics, but picking the ones the on-call
+engineer can act on. We agreed on three panels:
+
+1. Saturation (queue depth + worker CPU)
+2. Error budget burn
+3. Feature adoption overlay for context
+
+The Grafana dashboard lives in the repo, so every change goes through code review.
+Having config-as-code turned out to be the biggest productivity win of the week.
+
+## Wednesday — storytelling dashboards
+
+After getting the raw stats, we focused on annotations. Every deploy now leaves
+an annotation with the commit hash and feature flag toggles. Watching traces side
+by side with annotations makes postmortems less speculative and trains newer
+teammates on how to read distributed traces.
+
+## Thursday — writing it down
+
+This log exists because we forced ourselves to write short design updates after
+each day. The act of writing clarified the API contract between tracing and
+metrics, and the `references` section below tracks the docs we kept jumping back
+to. By the end of Thursday we could finally delete three flaky dashboards and
+ship the focused ones above.
