@@ -230,7 +230,7 @@ function ReferencesList({ references }: { references: Reference[] }) {
           }
 
           let title = reference.title ?? reference.url
-          let metaPieces = []
+          let metaPieces: string[] = []
           if (reference.author) metaPieces.push(reference.author)
           if (reference.publishedAt) metaPieces.push(reference.publishedAt)
           if (reference.note) metaPieces.push(reference.note)
