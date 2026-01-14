@@ -1,46 +1,47 @@
-import Link from 'next/link'
-import { formatDate, getPublishedBlogPosts } from 'app/blog/utils'
+import Link from "next/link";
+import { formatDate, getPublishedBlogPosts } from "app/blog/utils";
 
 type BlogPostsProps = {
-  variant?: 'home' | 'blog'
-}
+  variant?: "home" | "blog";
+};
 
-export function BlogPosts({ variant = 'blog' }: BlogPostsProps) {
+export function BlogPosts({ variant = "blog" }: BlogPostsProps) {
   let posts = getPublishedBlogPosts().sort((a, b) => {
     return (
       new Date(b.metadata.publishedAt).getTime() -
       new Date(a.metadata.publishedAt).getTime()
-    )
-  })
+    );
+  });
+
+  const hasNoPosts = posts.length === 0;
+  if (hasNoPosts) {
+    return <p>No blog posts. Maybe checkin latter.</p>;
+  }
 
   return (
     <div className="divide-y divide-dashed divide-neutral-200 dark:divide-neutral-800">
       {posts.map((post) =>
-        variant === 'home' ? (
+        variant === "home" ? (
           <HomePostItem key={post.slug} {...post.metadata} slug={post.slug} />
         ) : (
           <BlogListItem key={post.slug} {...post.metadata} slug={post.slug} />
         )
       )}
     </div>
-  )
+  );
 }
 
 type BlogItemProps = {
-  slug: string
-  title: string
-  publishedAt: string
-  summary?: string
-  tags?: string[]
-  series?: string
-  seriesSlug?: string
-}
+  slug: string;
+  title: string;
+  publishedAt: string;
+  summary?: string;
+  tags?: string[];
+  series?: string;
+  seriesSlug?: string;
+};
 
-function HomePostItem({
-  slug,
-  title,
-  publishedAt,
-}: BlogItemProps) {
+function HomePostItem({ slug, title, publishedAt }: BlogItemProps) {
   return (
     <article className="py-3">
       <p className="text-[12px] uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-500">
@@ -53,7 +54,7 @@ function HomePostItem({
         {title}
       </Link>
     </article>
-  )
+  );
 }
 
 function BlogListItem({
@@ -65,7 +66,7 @@ function BlogListItem({
   series,
   seriesSlug,
 }: BlogItemProps) {
-  let hasTags = tags && tags.length > 0
+  let hasTags = tags && tags.length > 0;
 
   return (
     <article className="py-5">
@@ -93,9 +94,9 @@ function BlogListItem({
       ) : null}
       {hasTags ? (
         <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
-          {tags!.map((tag) => `#${tag}`).join('  ')}
+          {tags!.map((tag) => `#${tag}`).join("  ")}
         </p>
       ) : null}
     </article>
-  )
+  );
 }

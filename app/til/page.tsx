@@ -1,19 +1,19 @@
-import Link from 'next/link'
-import { formatDate } from 'app/blog/utils'
-import { getPublishedTILPosts } from './utils'
+import Link from "next/link";
+import { formatDate } from "app/blog/utils";
+import { getPublishedTILPosts } from "./utils";
 
 export const metadata = {
-  title: 'Today I Learned',
-  description: 'Short engineering notes captured in-flight.',
-}
+  title: "Today I Learned",
+  description: "Short engineering notes captured in-flight.",
+};
 
 export default function TILIndexPage() {
   let posts = getPublishedTILPosts().sort((a, b) => {
     return (
       new Date(b.metadata.publishedAt).getTime() -
       new Date(a.metadata.publishedAt).getTime()
-    )
-  })
+    );
+  });
 
   return (
     <section>
@@ -21,20 +21,18 @@ export default function TILIndexPage() {
         Today I Learned
       </h1>
       <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-        Bite-sized notes from my notebooks, fewer polish passes than full blog posts.
+        Bite-sized notes from my notebooks, fewer polish passes than full blog
+        posts.
       </p>
 
       {posts.length === 0 ? (
         <p className="mt-8 text-sm text-neutral-500 dark:text-neutral-400">
-          Nothing logged yet—come back after the next coding rabbit hole.
+          Nothing logged yet
         </p>
       ) : (
         <div className="mt-8 divide-y divide-dashed divide-neutral-200 dark:divide-neutral-800">
           {posts.map((post) => (
-            <article
-              key={post.slug}
-              className="py-5"
-            >
+            <article key={post.slug} className="py-5">
               <div className="flex flex-wrap items-center justify-between text-[11px] uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-400">
                 <span>{formatDate(post.metadata.publishedAt)}</span>
                 {post.metadata.tags && post.metadata.tags.length > 0 ? (
@@ -74,5 +72,5 @@ export default function TILIndexPage() {
         </div>
       )}
     </section>
-  )
+  );
 }
