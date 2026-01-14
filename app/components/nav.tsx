@@ -5,6 +5,7 @@ const navItems = [
   { href: '/blog', label: 'blog' },
   { href: '/series', label: 'series' },
   { href: '/til', label: 'til' },
+  { href: '/resume', label: 'resume' },
 ]
 
 export function Navbar() {
