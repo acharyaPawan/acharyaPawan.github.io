@@ -1,31 +1,48 @@
+import Image from 'next/image'
+import profileImage from '../assets/pawan.jpg'
+
 export default function ResumePage() {
   return (
     <section>
-      <h1 className="text-3xl font-semibold uppercase tracking-[0.2em]">
-        Pawan Acharya
-      </h1>
-      <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-        <a
-          href="mailto:pawanacharya102@gmail.com"
-          className="underline decoration-neutral-400 underline-offset-2 transition hover:text-neutral-900 dark:decoration-neutral-600 dark:hover:text-neutral-100"
-        >
-          pawanacharya102@gmail.com
-        </a>{' '}
-        |{' '}
-        <a
-          href="https://acharyapawan.github.com"
-          className="underline decoration-neutral-400 underline-offset-2 transition hover:text-neutral-900 dark:decoration-neutral-600 dark:hover:text-neutral-100"
-        >
-          acharyaPawan.github.com
-        </a>{' '}
-        |{' '}
-        <a
-          href="https://github.com/acharyaPawan"
-          className="underline decoration-neutral-400 underline-offset-2 transition hover:text-neutral-900 dark:decoration-neutral-600 dark:hover:text-neutral-100"
-        >
-          github.com/acharyaPawan
-        </a>
-      </p>
+      <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-10">
+        <div className="shrink-0">
+          <Image
+            src={profileImage}
+            alt="Portrait of Pawan Acharya"
+            width={360}
+            height={480}
+            priority
+            className="w-48 rounded-md border border-neutral-200 object-cover shadow-sm dark:border-neutral-800 md:w-56"
+          />
+        </div>
+        <div>
+          <h1 className="text-3xl font-semibold uppercase tracking-[0.2em]">
+            Pawan Acharya
+          </h1>
+          <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+            <a
+              href="mailto:pawanacharya102@gmail.com"
+              className="underline decoration-neutral-400 underline-offset-2 transition hover:text-neutral-900 dark:decoration-neutral-600 dark:hover:text-neutral-100"
+            >
+              pawanacharya102@gmail.com
+            </a>{' '}
+            |{' '}
+            <a
+              href="https://acharyapawan.github.com"
+              className="underline decoration-neutral-400 underline-offset-2 transition hover:text-neutral-900 dark:decoration-neutral-600 dark:hover:text-neutral-100"
+            >
+              acharyaPawan.github.com
+            </a>{' '}
+            |{' '}
+            <a
+              href="https://github.com/acharyaPawan"
+              className="underline decoration-neutral-400 underline-offset-2 transition hover:text-neutral-900 dark:decoration-neutral-600 dark:hover:text-neutral-100"
+            >
+              github.com/acharyaPawan
+            </a>
+          </p>
+        </div>
+      </div>
 
       <article className="prose mt-8 dark:prose-invert">
         <h2>Technical Skills</h2>
