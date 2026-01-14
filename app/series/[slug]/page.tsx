@@ -1,34 +1,39 @@
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import {
-  formatDate,
-  getSeriesBySlug,
-  getSeriesList,
-} from 'app/blog/utils'
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { formatDate, getSeriesBySlug, getSeriesList } from "app/blog/utils";
+
+export const dynamic = "force-static";
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
-  return getSeriesList().map((series) => ({ slug: series.slug }))
+  const seriesList = getSeriesList().map((series) => ({ slug: series.slug }));
+  if (!seriesList || seriesList.length === 0) {
+    return [{ slug: "not-found" }];
+  }
+  return seriesList;
 }
 
 export function generateMetadata({ params }) {
-  let series = getSeriesBySlug(params.slug)
+  let series = getSeriesBySlug(params.slug);
   if (!series) {
     return {
-      title: 'Series',
-    }
+      title: "Series",
+    };
   }
 
   return {
     title: `${series.title} · Series`,
-    description: `A ${series.posts.length}-part series updated ${formatDate(series.latestPublishedAt)}.`,
-  }
+    description: `A ${series.posts.length}-part series updated ${formatDate(
+      series.latestPublishedAt
+    )}.`,
+  };
 }
 
 export default function SeriesDetailPage({ params }) {
-  let series = getSeriesBySlug(params.slug)
+  let series = getSeriesBySlug(params.slug);
 
   if (!series) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -43,22 +48,19 @@ export default function SeriesDetailPage({ params }) {
         {series.title}
       </h1>
       <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-        {series.posts.length} parts · Updated{' '}
+        {series.posts.length} parts · Updated{" "}
         {formatDate(series.latestPublishedAt)}
       </p>
 
       <ol className="mt-8 divide-y divide-dashed divide-neutral-200 dark:divide-neutral-800">
         {series.posts.map((post, index) => (
-          <li
-            key={post.slug}
-            className="py-5"
-          >
+          <li key={post.slug} className="py-5">
             <div className="flex flex-wrap items-center justify-between text-[11px] uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-400">
               <span>
                 Part {index + 1}
                 {post.metadata.readingTime
                   ? ` · ${post.metadata.readingTime} min read`
-                  : ''}
+                  : ""}
               </span>
               <span>{formatDate(post.metadata.publishedAt)}</span>
             </div>
@@ -86,5 +88,5 @@ export default function SeriesDetailPage({ params }) {
         ))}
       </ol>
     </section>
-  )
+  );
 }

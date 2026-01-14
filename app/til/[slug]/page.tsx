@@ -1,32 +1,36 @@
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { formatDate } from 'app/blog/utils'
-import { CustomMDX } from 'app/components/mdx'
-import { getTILPosts } from '../utils'
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { formatDate } from "app/blog/utils";
+import { CustomMDX } from "app/components/mdx";
+import { getTILPosts } from "../utils";
 
 export async function generateStaticParams() {
-  return getTILPosts().map((til) => ({ slug: til.slug }))
+  const tils = getTILPosts().map((til) => ({ slug: til.slug }));
+  if (!tils || tils.length === 0) {
+    return [{ slug: "not-found" }];
+  }
+  return tils;
 }
 
 export function generateMetadata({ params }) {
-  let til = getTILPosts().find((entry) => entry.slug === params.slug)
+  let til = getTILPosts().find((entry) => entry.slug === params.slug);
   if (!til) {
     return {
-      title: 'Today I Learned',
-    }
+      title: "Today I Learned",
+    };
   }
 
   return {
     title: til.metadata.title,
     description: til.metadata.summary,
-  }
+  };
 }
 
 export default function TILDetailPage({ params }) {
-  let til = getTILPosts().find((entry) => entry.slug === params.slug)
+  let til = getTILPosts().find((entry) => entry.slug === params.slug);
 
   if (!til) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -59,5 +63,5 @@ export default function TILDetailPage({ params }) {
         <CustomMDX source={til.content} />
       </article>
     </section>
-  )
+  );
 }
