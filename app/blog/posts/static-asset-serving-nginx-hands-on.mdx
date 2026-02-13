@@ -1,0 +1,135 @@
+---
+title: "What I Learned About Static Asset Serving on Nginx (Hands-On)"
+publishedAt: "2026-02-13"
+summary: "A practical, hands-on breakdown of static asset serving on Nginx: cache policy, gzip behavior, range requests, edge caching, and rollout safety."
+type: "Tutorial"
+tags:
+  - nginx
+  - caching
+  - static-assets
+  - performance
+  - devops
+status: "published"
+---
+
+I used to think static asset serving was just "put files in Nginx and done."  
+After building and debugging a full setup, I realized the real work is in caching strategy, compression behavior, edge behavior, and safe rollout.
+
+This is my practical summary of static asset serving on Nginx.
+
+## 1. Build output matters before Nginx config
+
+I switched to a bundler-driven build (`vite build`) so JS/CSS are emitted with content hashes.  
+That gave me filenames like `index-<hash>.js` and `index-<hash>.css`, which are safe to cache aggressively.
+
+Key lesson:
+
+- Hashed assets can be cached for a very long time.
+- HTML should not be treated the same way because it changes references to new hashed assets.
+
+## 2. Correct cache headers by file type
+
+I ended up with this policy:
+
+- HTML (`/`, `/index.html`): `Cache-Control: no-cache`
+- Hashed assets (`/assets/*`): `Cache-Control: public, max-age=31536000, immutable`
+
+This split solved the classic problem:
+
+- Browser revalidates HTML and discovers new release references.
+- Assets stay highly cacheable and fast.
+
+## 3. Nginx routing details that actually matter
+
+I learned to be explicit with `location` blocks:
+
+- `location = /` for exact root
+- `location = /index.html` for HTML behavior
+- `location /assets/` for static immutable assets
+
+Also, I stopped mixing proxy directives into static-serving routes.  
+If a route is serving local files directly, `proxy_set_header` and other `proxy_*` directives are unnecessary.
+
+## 4. Compression is easy to enable, but easy to misunderstand
+
+I enabled gzip and verified with:
+
+`curl -I -H "Accept-Encoding: gzip" <asset-url>`
+
+What tripped me up:
+
+- If `gzip_min_length` is too high, small bundles won't be compressed.
+- You may think gzip is broken when it's just below threshold.
+
+I also learned why this header is critical:
+
+`Vary: Accept-Encoding`
+
+Without it, caches can mix compressed and uncompressed variants incorrectly.
+
+## 5. Range requests and connection efficiency
+
+For larger assets, I validated:
+
+- `Accept-Ranges: bytes`
+- `206 Partial Content` with `Range: bytes=0-99`
+
+I added:
+
+- `sendfile on;`
+- `keepalive_timeout ...;`
+
+Important distinction:
+
+- Nginx static files already support byte ranges.
+- `sendfile` and keepalive improve efficiency; they don't create range support.
+
+## 6. Simulating CDN behavior with an edge Nginx cache
+
+I put an edge Nginx in front of origin and cached only `/assets/*`.  
+HTML was bypassed.
+
+I added an observable response header:
+
+`X-Cache-Status: $upstream_cache_status`
+
+So repeated requests clearly showed:
+
+- first request: `MISS`
+- next request: `HIT`
+- HTML route: `BYPASS`
+
+This made cache behavior visible immediately, not guesswork.
+
+## 7. Observability and rollout safety are part of static serving
+
+I updated edge access logs to include cache status and timings, so I could see `MISS/HIT` in logs directly.
+
+My rollout rule became:
+
+1. Deploy assets first
+2. Verify asset URLs return 200
+3. Deploy HTML after assets are available
+
+Rollback rule:
+
+- Roll back HTML first, keep prior hashed assets available.
+
+This avoids broken pages caused by HTML pointing to assets that aren't live yet.
+
+## 8. Biggest debugging lesson
+
+When config changes didn't reflect in responses, the issue was often container lifecycle, not Nginx logic.  
+If config is baked into the image, file edits on host do nothing until rebuild/recreate.
+
+The most useful check became:
+
+`nginx -T` inside the running container
+
+It tells me what Nginx is actually running right now.
+
+---
+
+Static asset serving on Nginx looks simple on the surface, but production-safe behavior comes from disciplined cache rules, measurable edge behavior, and deployment order. Once I treated those as first-class concerns, the setup became fast, predictable, and debuggable.
+
+Gist: <https://gist.github.com/acharyaPawan/4ded9cd14a7a8d461ccfa06995a2e116>
